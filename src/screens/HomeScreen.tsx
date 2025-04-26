@@ -5,12 +5,9 @@ import { Button } from 'react-native-elements';
 import { HeaderContainer, HeaderTitle } from '../components/Header';
 import theme from '../styles/theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-  Home: undefined;
-  CreateAppointment: undefined;
-  Profile: undefined;
-};
+import { RootStackParamList } from '../types/navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -23,32 +20,24 @@ type AppointmentItem = {
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [appointments, setAppointments] = React.useState<AppointmentItem[]>([]);
+  const isFocused = useIsFocused();
 
-  // Mock de dados para teste
+  const loadAppointments = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('appointments');
+      if (stored) {
+        setAppointments(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar consultas:', error);
+    }
+  };
+
   React.useEffect(() => {
-    setAppointments([
-      {
-        id: '1',
-        doctor: {
-          image: 'https://randomuser.me/api/portraits/men/32.jpg',
-          name: 'Dr. João Silva',
-          specialty: 'Cardiologista',
-        },
-        date: '25/04/2025',
-        time: '14:00',
-      },
-      {
-        id: '2',
-        doctor: {
-          image: 'https://randomuser.me/api/portraits/women/44.jpg',
-          name: 'Dra. Ana Lima',
-          specialty: 'Dermatologista',
-        },
-        date: '27/04/2025',
-        time: '09:30',
-      },
-    ]);
-  }, []);
+    if (isFocused) {
+      loadAppointments();
+    }
+  }, [isFocused]);
 
   const renderItem = ({ item }: { item: AppointmentItem }) => (
     <AppointmentCard>

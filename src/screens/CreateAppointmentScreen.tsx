@@ -5,10 +5,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-  CreateAppointment: undefined;
-};
+import { RootStackParamList } from '../types/navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { v4 as uuidv4 } from 'uuid';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateAppointment'>;
 
@@ -25,9 +24,27 @@ export const CreateAppointmentScreen = ({ navigation }: Props) => {
       nome: Yup.string().required('Nome é obrigatório'),
       descricao: Yup.string().required('Descrição é obrigatória'),
     }),
-    onSubmit: values => {
-      console.log(values);
-      navigation.goBack();
+    onSubmit: async values => {
+      const newAppointment = {
+        id: uuidv4(),
+        doctor: {
+          name: values.nome,
+          specialty: values.descricao,
+          image: 'https://randomuser.me/api/portraits/lego/1.jpg', // placeholder
+        },
+        date: date.toLocaleDateString(),
+        time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      try {
+        const existing = await AsyncStorage.getItem('appointments');
+        const parsed = existing ? JSON.parse(existing) : [];
+        parsed.push(newAppointment);
+        await AsyncStorage.setItem('appointments', JSON.stringify(parsed));
+        navigation.goBack();
+      } catch (err) {
+        console.error('Erro ao salvar consulta:', err);
+      }
     },
   });
 
@@ -59,12 +76,12 @@ export const CreateAppointmentScreen = ({ navigation }: Props) => {
 
         <Label>Data da Consulta</Label>
         <Button title="Selecionar Data" onPress={() => setShowDatePicker(true)} />
-        <Text>{date.toLocaleDateString()}</Text>
+        <Text>{date.toLocaleDateString()} - {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
 
         {showDatePicker && (
           <DateTimePicker
             value={date}
-            mode="date"
+            mode="datetime"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleDateChange}
           />
