@@ -10,10 +10,15 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-community/datetimepicker": "8.2.0",
+    "@react-navigation/native-stack": "^7.3.10",
     "expo": "~52.0.46",
     "expo-status-bar": "~2.0.1",
+    "formik": "^2.4.6",
     "react": "18.3.1",
-    "react-native": "0.76.9"
+    "react-native": "0.76.9",
+    "styled-components": "^5.3.11",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
